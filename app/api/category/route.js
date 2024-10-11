@@ -1,23 +1,19 @@
-import { MongoClient } from 'mongodb'
-import clientPromise from '../../../lib/mongodb' // Adjust the path as needed
+import Category from '@/models/Category'
 
 export async function GET() {
-  const client = await clientPromise
-  const db = client.db('final')
-
-  const categories = await db.collection('categories').find({}).toArray()
-
-  return new Response(JSON.stringify(categories), { status: 200 })
+  const categories = await Category.find().sort({ order: -1 })
+  return Response.json(categories)
 }
 
-export async function POST(req) {
-  const client = await clientPromise
-  const db = client.db('final')
-  const newCategory = await req.json()
+export async function POST(request) {
+  const body = await request.json()
+  const category = new Category(body)
+  await category.save()
+  return Response.json(category)
+}
 
-  await db.collection('categories').insertOne(newCategory)
-
-  return new Response(JSON.stringify({ message: 'Category added' }), {
-    status: 201,
-  })
+export async function PUT(request) {
+  const body = await request.json()
+  const category = await Category.findByIdAndUpdate(body._id, body)
+  return Response.json(category)
 }
